@@ -2,5 +2,5 @@ package project.image.tesseract;
 
 public interface TessService {
 
-    String getTextFromImage();
+    String sendRequestToObtainTextFromImage(byte[] byteArray) throws Exception;
 }

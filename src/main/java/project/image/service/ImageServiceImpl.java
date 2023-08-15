@@ -7,9 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 import project.baza.model.ImageReceipt;
 import project.exception.CouldNotFindEntityException;
 import project.image.repository.ImageReceiptRepository;
+import project.image.tesseract.TessService;
 import project.image.utils.ImageUtils;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -18,27 +18,31 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageReceiptRepository imageReceiptRepository;
 
+    private final TessService tessService;
+
     @Autowired
-    public ImageServiceImpl(ImageReceiptRepository imageReceiptRepository) {
+    public ImageServiceImpl(ImageReceiptRepository imageReceiptRepository, TessService tessService) {
         this.imageReceiptRepository = imageReceiptRepository;
+        this.tessService = tessService;
     }
 
     @Override
-    public String uploadImage(MultipartFile file) throws IOException {
-        ImageReceipt imageData = imageReceiptRepository.save(ImageReceipt.builder()
+    public String uploadImage(MultipartFile file) throws Exception {
+        ImageReceipt imageData = ImageReceipt.builder()
                 .name(file.getOriginalFilename())
                 .type(file.getContentType())
                 .imageData(ImageUtils.compressImage(file.getBytes()))
-                .build());
+                .build();
+        imageReceiptRepository.save(imageData);
         log.info("File uploaded successfully : " + file.getOriginalFilename());
-        return imageData.toString();
+        String response = tessService.sendRequestToObtainTextFromImage(file.getBytes());
+        return response;
     }
 
     @Override
     public byte[] downloadImage(String fileName) {
         ImageReceipt imageReceipt = findByName(fileName);
-        byte[] images = ImageUtils.decompressImage(imageReceipt.getImageData());
-        return images;
+        return ImageUtils.decompressImage(imageReceipt.getImageData());
     }
 
     @Override
