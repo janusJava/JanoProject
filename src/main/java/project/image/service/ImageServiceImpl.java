@@ -35,8 +35,7 @@ public class ImageServiceImpl implements ImageService {
                 .build();
         imageReceiptRepository.save(imageData);
         log.info("File uploaded successfully : " + file.getOriginalFilename());
-        String response = tessService.sendRequestToObtainTextFromImage(file.getBytes());
-        return response;
+        return tessService.sendRequestToObtainTextFromImage(file.getBytes());
     }
 
     @Override
